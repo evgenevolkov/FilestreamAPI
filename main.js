@@ -11,8 +11,7 @@ var casesSizes=[];
 var casesTotals=[];
 var casesOutputs=[];
 
-function loadFileAsText()
-{
+function loadFileAsText() {
     var fileToLoad = document.getElementById("fileToLoad").files[0];
     var fileReader = new FileReader();
     fileReader.onload = function(fileLoadedEvent) {
@@ -24,17 +23,30 @@ function loadFileAsText()
     fileReader.readAsText(fileToLoad, "UTF-8");
 }
 
+function loadLocalFile() {
+    var xmlhttp = new XMLHttpRequest();
+    xmlhttp.onreadystatechange = function(){
+        if(xmlhttp.status == 200 && xmlhttp.readyState == 4){
+            textLoaded = xmlhttp.responseText;
+            divide(textLoaded);
+            loadCases();
+            searcher();
+        }
+    };
+    xmlhttp.open("GET","sourse.txt",true);
+    xmlhttp.send();
+}
+
 function divide (rawTaskText) {
-    var noOfCases = parseInt(textLoaded.substring(0,1));
+    var noOfCases = parseInt(rawTaskText.substring(0,1));
     var place = 2;
     for (i=0; i<noOfCases; i++) {
-        casesSizes[i]= parseInt(textLoaded.substr(place,1));
+        casesSizes[i]= parseInt(rawTaskText.substr(place,1));
         place += (casesSizes[i]*(casesSizes[i]+1)+2)
     }
 }
 
 function loadCases () {
-
     var readerPlace=4;
     for (caseNo = 0; caseNo<casesSizes.length; caseNo++) {
         casesTotals [caseNo] = 0;
@@ -56,9 +68,9 @@ function loadCases () {
     }
 
     for (caseNo = 0; caseNo<casesSizes.length; caseNo++) {
+        var printline;
         onScreen("caseNo:" + (caseNo+1));
         for (posY=0; posY<casesSizes[caseNo]; posY++) {
-            var printline;
             printline = "";
             for (posX=0; posX<casesSizes[caseNo]; posX++){
                 printline += sourceData[caseNo][posY][posX];
@@ -71,29 +83,29 @@ function loadCases () {
 function searcher () {
     function arrSum (casNo,startX,startY,endX,endY) {
         var arSum=0;
-        for (y=startY; y<endY+1;y++) {
-            for (x=startX; x<endX+1;x++) {
+        for (y=startY; y<endY;y++) {
+            for (x=startX; x<endX;x++) {
                 arSum += sourceData[casNo][y][x];
             }
         }
         return arSum
     }
 
-var endCaseSearch = false;
+    var endCaseSearch;
     for (caseNo = 0; caseNo < casesSizes.length; caseNo++) {
         endCaseSearch = false;
         for (posY = 0; posY < casesSizes[caseNo]; posY++) {
             for (posX = 0; posX < casesSizes[caseNo]; posX++) {
-                if (sourceData[caseNo][posY][posX] == 1) {
-                    var startX=posX; startY=posY;
-                    if (sourceData[caseNo][posY][posX + 1] == 1) {
-                        var sqSize = 2;
-                        for (pY = posY, pX = posX + 2; sqSize < (casesSizes[caseNo] - posX); sqSize++, pX++) {
-                            if (sourceData[caseNo][pY][pX] == 1) {
+                if (sourceData[caseNo][posY][posX] === 1) {
+                    var startX=posX; startY=posY; sqSize = 2;
+                    if (sourceData[caseNo][posY][posX + 1] === 1) {
+                        for (pY = posY, pX = posX + 2; pX <= (casesSizes[caseNo] - posX); pX++) {
+                            if (sourceData[caseNo][pY][pX] === 1) {
+                                sqSize ++;
                             }
                         }
                         var total = 0;
-                        total = arrSum(caseNo,startX,startY,startX+sqSize-1,startY+sqSize-1);
+                        total = arrSum(caseNo,startX,startY,startX+sqSize,startY+sqSize);
                         if (total === (sqSize * sqSize)) {
                             if (casesTotals[caseNo] === total) {
                                 endCaseSearch = true;
@@ -126,6 +138,8 @@ var endCaseSearch = false;
     }
 
     for (i=0; i<casesOutputs.length; i++) {
-        onScreen("Case #" + i + ": " + casesOutputs[i])
+        onScreen("Case #" + (i + 1) + ": " + casesOutputs[i])
     }
 }
+
+loadLocalFile();
